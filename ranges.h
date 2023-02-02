@@ -1,15 +1,10 @@
 #pragma once
 
-struct range {
-    int i_low, i_high;
-    int j_low, j_high;
-
-    int activation_low, activation_high;
-};
 
 struct z_range {
     int i_low, i_high;
     int j_low, j_high;
+    int j_max;
 };
 
 struct activation_range {

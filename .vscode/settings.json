@@ -2,6 +2,7 @@
     "files.associations": {
         "concepts": "cpp",
         "stdatomic.h": "c",
-        "atomic": "c"
+        "atomic": "c",
+        "forward_prop.h": "c"
     }
 }

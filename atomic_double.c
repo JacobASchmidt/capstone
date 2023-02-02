@@ -41,12 +41,9 @@ double atomic_double_fetch_add(struct atomic_double *ad, double delta)
 
 void atomic_double_update(struct atomic_double *ad, double (*f)(double))
 {
-    double ret;
     lock(&ad->spinlock);
-    ret = ad->d;
     ad->d = f(ad->d);
     unlock(&ad->spinlock);
-    return ret;
 }
 
 
