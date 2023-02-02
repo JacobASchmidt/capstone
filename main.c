@@ -23,7 +23,7 @@ void *feed_forward(void *arg)
     for (int i = 0; i < NUM_LAYERS - 1; ++i) {
         compute_z(ranges[i].z_range, weights, layers[i], layers[i+1]);
         sync_threads(&sync_group, &sc);
-        activation(ranges[i].activation_range, layers[i]);
+        activation(ranges[i].activation_range, layers[i+1]);
         sync_threads(&sync_group, &sc);
     }
     
