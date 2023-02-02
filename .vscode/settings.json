@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "concepts": "cpp",
+        "stdatomic.h": "c",
+        "atomic": "c"
+    }
+}
