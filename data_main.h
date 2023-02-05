@@ -1,13 +1,5 @@
-#include <stdint.h>
+#pragma once
 #include "data.h"
-
-
-#define INPUT_SIZE  94
-#define HIDDEN_SIZE 25
-#define OUTPUT_SIZE 5
-#define NUM_LAYERS  4
-
-
 
 double weights1[INPUT_SIZE][MAX_WEIGHT_SIZE] = {{0}};
 double weights2[HIDDEN_SIZE][MAX_WEIGHT_SIZE] = {{0}};
@@ -36,23 +28,3 @@ int layer_dims[] = {
     HIDDEN_SIZE,
     OUTPUT_SIZE
 };
-
-
-struct atomic_double *get_layers() 
-{
-    return layers;
-}
-const int *get_layer_dims()
-{
-    return layer_dims;
-}
-
-
-
-typedef const double *(*weights_t[MAX_WEIGHT_SIZE]);
-
-weights_t get_weights()
-{
-    return weights;
-}
-const struct weight_dim *get_weight_dims();

@@ -3,6 +3,7 @@
         "concepts": "cpp",
         "stdatomic.h": "c",
         "atomic": "c",
-        "forward_prop.h": "c"
+        "forward_prop.h": "c",
+        "partition.h": "c"
     }
 }

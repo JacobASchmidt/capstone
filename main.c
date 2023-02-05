@@ -6,10 +6,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include "ranges.h"
+#include "partition.h"
 #include "sync_group.h"
 #include "forward_prop.h"
-#include "data.h"
+#include "data_main.h"
 
 #define NUM_THREADS 94
 
@@ -18,19 +18,19 @@ struct sync_group sync_group;
 void *feed_forward(void *arg)
 {
     sync_control sc = SYNC_CONTROL_INIT;
-    struct range *ranges = arg;
+    struct partition *partitions = arg;
 
     for (int i = 0; i < NUM_LAYERS - 1; ++i) {
-        compute_z(ranges[i].z_range, weights, layers[i], layers[i+1]);
+        compute_z(partitions[i].z_stream, weights, layers[i], layers[i+1]);
         sync_threads(&sync_group, &sc);
-        activation(ranges[i].activation_range, layers[i+1]);
+        activation(partitions[i].activation_stream, layers[i+1]);
         sync_threads(&sync_group, &sc);
     }
     
     return NULL;
 }
 
-
+/*
 void split_ranges(int num_workers, int i, int j, struct range *ranges)
 {
     // this code is hard to get right, might be buggy
@@ -79,7 +79,7 @@ void split_ranges(int num_workers, int i, int j, struct range *ranges)
     
     // I think this is actually pretty close to correct after all
 }
-
+*/
 
 int main()
 {

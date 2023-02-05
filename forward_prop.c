@@ -8,28 +8,22 @@ double ReLU(double d)
         return d;
 }
 
-void compute_z(struct z_range range, const double *(*weights[MAX_WEIGHT_SIZE]), const struct atomic_double *input, struct atomic_double *output)
+void compute_z(struct z_stream z_stream, const double *(*weights[MAX_WEIGHT_SIZE]), const struct atomic_double *input, struct atomic_double *output)
 {
-
-    for (int i = range.i_low; i < range.i_high; ++i) {
-        double res = 0;
-        int j_low = 0, j_high = range.j_max;
-        if (i == range.i_low) 
-            j_low = range.j_low;
-
-        if (i == range.i_high)
-            j_high = range.j_high;
-            
-        for (int j = j_low; j < j_high; ++j) {
-            double input_val = atomic_double_unchecked_load(&input[i]);
-            res += input_val * (*weights[j])[i]; //this is terrible for cache, must fix for big speedup
-        }
+    while (!z_stream_done(z_stream))
+    {
+        struct z_element z_indices = z_stream_next(&z_stream);
+        int i = z_indices.i, j = z_indices.j;
+        double input_val = atomic_double_unchecked_load(&input[i]);
+        double res = input_val * (*weights[j])[i]; // might want to fix this for cache, dirty writes can be a killer
         atomic_double_fetch_add(&output[i], res);
     }
 }
 
-void activation(struct activation_range range, struct atomic_double *output)
+void activation(struct activation_stream stream, struct atomic_double *output)
 {
-    for (int i = range.low; i < range.high; ++i) 
-        atomic_double_update(&output[i], ReLU);
+    while (!activation_stream_done(stream)) {
+        activation_element i = activation_stream_next(&stream);
+        atomic_double_unchecked_update(&output[i], ReLU);
+    }
 }
