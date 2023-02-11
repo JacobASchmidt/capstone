@@ -8,6 +8,7 @@ layers = [[2 * random.random() - 1 for i in range(n)] for n in dims]
 
 N_THREADS = 94
 
+
 def parition_activaiton(layer_size, n_threads, layer_num):
     if n_threads > layer_size:
         return [(i, i + 1) for i in range(layer_size)] + [(0, 0) for _ in range(layer_size, n_threads)]

@@ -14,6 +14,7 @@ void lock(struct spinlock *lock)
     }
     
 }
+
 void unlock(struct spinlock *lock)
 {
     atomic_store_explicit(&lock->flag, false, memory_order_release);

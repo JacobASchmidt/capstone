@@ -1,0 +1,96 @@
+import (
+    "rand"
+    "streams"
+    "lists"
+    "strings"
+    "format"
+)
+
+numLayers = rand.Int(1, 6)
+
+dims = range(0, layers - 1)
+    then map((_) => rand.Int(60, 1000))
+    then reduce([1000], (dims, dim) => [...dims, dim])
+
+layers = stream(dims)
+    then map((dim) => rand.List(dim))
+    then lists.Collect()
+
+type activationRange struct 
+    Low  int 
+    High int 
+
+def partitionActivation(layerSize int, nThreads int, layerNum int) |activationRange|
+    if layerSize > nThreads 
+        workers = range(0, layerSize)
+            then map((i) => activationRange{.Low = i, .High = i+1})
+        lazys = range(layerSize, nThreads)
+            then map((_) => activationRange{.Low = 0, .High = 0})
+        return chain(workers, lazy)
+    
+    smallStepSize = layerSize / nThreads 
+    bigStepSize = smallStepSize + 1
+
+    numBigSteppers = layerSize % nThreads
+    numSmallSteppers  = nThreads - numBigSteppers
+
+    smallBound = numSmallSteppers * smallStepSize
+    totalBound = smallBound + numBigSteppers * bigStepSize
+
+    smallSteppers = streams.Range(0, smallBound, smallStepSize)
+        then map((i) => activationRange{.Low = i, .High = i + smallStepSize})
+
+    bigSteppers = streams.Range(smallBound, totalBound, bigStepSize)
+        then map((i) => activationRange{.Low = i, .High = i + bigStepSize})
+    
+    return chain(smallSteppers, bigSteppers)
+
+type zRange struct 
+    Low int 
+    High int 
+    JMax int 
+
+def partitionZ(i_ int, j int, nThreads int, layerNum int) |zRange|
+    size = i_ * j 
+    if nThreads > size 
+        workers = range(0, size)
+            then map((i) => zRange{.Low = i, .High = i+1, .JMax = j})
+        lazys = range(size, nThreads)
+            then map((_) => zRange{.Low = 0, .High = 0, .JMax = j})
+        return chain(workers, lazy)
+
+    smallStepSize = size / nThreads 
+    bigStepSize = smallStepSize + 1
+
+    numBigSteppers = size % nThreads
+    numSmallSteppers  = nThreads - numBigSteppers
+
+    smallBound = numSmallSteppers * smallStepSize
+    totalBound = smallBound + numBigSteppers * bigStepSize
+
+    smallSteppers = streams.Range(0, smallBound, smallStepSize)
+        then map((i) => zRange{.Low = i, .High = i + smallStepSize, .JMax = j})
+
+    bigSteppers = streams.Range(smallBound, totalBound, bigStepSize)
+        then map((i) => zRange{.Low = i, .High = i + bigStepSize, .JMax = j})
+    
+    return chain(smallSteppers, bigSteppers)
+
+def writeWeights(s strings.Builder, weights &[[float]]) strings.Builder
+    // this is all wrong :)
+    def writeHeader(s strings.Builder) strings.Builder 
+        return format.Append(s, "const double weights_{} = \{", i)
+    def writeLayer(s strings.Builder, layer |float|) strings.Builder
+        s = s.Append("\n\t{")
+        s = layers
+            then reduce(s, (el) => format.Append(s, "\n\t\t{},", el))
+        return s.Append("},")
+    def writeFooter(s strings.Builder) strings.Builder 
+        s.Append("\n};\n")
+
+
+    s = writeHeader(s)
+    s = stream(weights)
+        then reduce(s, (s, layer) => writeLayer(s, layer))
+    s = writeFooter(s)
+    return s 
